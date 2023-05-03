@@ -16,11 +16,37 @@ const customHeaders = {
 	Authorization: "Bearer " + access_token,
 };
 
-const file_link_path = "https://www.africau.edu/images/default/sample.pdf"; // todo
+// const file_link_path = "https://www.africau.edu/images/default/sample.pdf";
 
-const sendNotification = async (payload) => {
+const sendNotification = async (tel, fileName) => {
+	let requestData = {
+		messaging_product: "whatsapp",
+		recipient_type: "individual",
+		to: tel,
+		type: "template",
+		template: {
+			name: "loan_notification",
+			language: {
+				code: "ru",
+			},
+			components: [
+				{
+					type: "button",
+					sub_type: "url",
+					index: "0",
+					parameters: [
+						{
+							type: "text",
+							text: fileName,
+						},
+					],
+				},
+			],
+		},
+	};
+
 	await axios
-		.post(url, payload, {
+		.post(url, requestData, {
 			headers: customHeaders,
 		})
 		.then(({ data, status }) => {
@@ -36,12 +62,6 @@ const sendNotification = async (payload) => {
 		});
 };
 
-var requestData = {
-	messaging_product: "whatsapp",
-	recipient_type: "individual",
-	type: "document",
-};
-
 fs.readdir(directory, (err, files) => {
 	files.forEach((file) => {
 		let fileDetails = fs.lstatSync(path.resolve(directory, file));
@@ -49,16 +69,11 @@ fs.readdir(directory, (err, files) => {
 		if (fileDetails.isDirectory()) {
 			// console.log("Directory: " + file);
 		} else {
-			// console.log("File: " + file);
+			console.log("File: " + file);
 			const parts = file.split("_");
 			const telephoneNumber = parts[2];
-			requestData.to = `7${telephoneNumber}`;
-			requestData.document = {
-				link: file_link_path,
-				filename: file,
-				caption: "Caption text...",
-			};
-			sendNotification(requestData);
+			let tel = `7${telephoneNumber}`;
+			sendNotification(tel, file);
 		}
 	});
 });
